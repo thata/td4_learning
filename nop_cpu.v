@@ -1,3 +1,4 @@
+// nopのみを実行するCPU
 module nop_cpu_test();
   reg a;
 
