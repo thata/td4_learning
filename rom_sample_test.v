@@ -1,8 +1,8 @@
-module rom_test();
+module rom_sample_test();
   reg [3:0] adr;
   wire [7:0] dout;
 
-  rom rom0 (adr, dout);
+  rom_sample rom0 (adr, dout);
 
   initial begin
     $monitor("%t: adr = %b, dout = %b", $time, adr, dout);

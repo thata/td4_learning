@@ -1,4 +1,4 @@
-module rom(
+module rom_sample(
   input [3:0] adr,
   output reg [7:0] dout);
 
