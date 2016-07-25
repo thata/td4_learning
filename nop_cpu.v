@@ -1,5 +1,3 @@
-// 実行方法
-// iverilog -o a nop_cpu.v && ./a
 module nop_cpu_test();
   reg a;
 
