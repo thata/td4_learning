@@ -2,8 +2,10 @@ module td4_test();
   reg clk, reset;
   wire [3:0] rom_adr;
   wire [7:0] rom_data;
+  reg [3:0] in_port;
+  wire [3:0] out_port;
 
-  td4 cpu0 (clk, reset, rom_adr, rom_data);
+  td4 cpu0 (clk, reset, rom_adr, rom_data, in_port, out_port);
   td4_rom rom0 (rom_adr, rom_data);
 
   always
@@ -14,19 +16,26 @@ module td4_test();
     #400 $finish;
 
   initial begin
+    $monitor("out_port = %b", out_port);
+
     // init clock
     clk = 0;
 
     // reset cpu
     reset = 1; #10;
     reset = 0; #10;
+
+    // in_port へ 0101 をセット
+    in_port = 4'b0101;
   end
 endmodule
 
 module td4(
   input clk, reset,
   output [3:0] adr,
-  input [7:0] instr
+  input [7:0] instr,
+  input [3:0] in_port,
+  output [3:0] out_port
 );
 
   wire [3:0] pcf; // PCの出力
@@ -40,7 +49,8 @@ module td4(
 
   register reg_a (clk, reset, load0, alu_out, reg_a_data);
   register reg_b (clk, reset, load1, alu_out, reg_b_data);
-  data_selector selector0 (reg_a_data, reg_b_data, 4'b0000, 4'b0000, select_a, select_b, selector_out);
+  register reg_c (clk, reset, load2, alu_out, out_port);
+  data_selector selector0 (reg_a_data, reg_b_data, in_port, 4'b0000, select_a, select_b, selector_out);
   counter pc0 (clk, reset, load3, alu_out, pcf);
   adder4 alu (selector_out, im, alu_out, alu_co);
   dff alu_co_memo (clk, reset, alu_co, m_alu_co);
@@ -56,7 +66,7 @@ module td4(
   assign load3 = (!m_alu_co | instr[4]) & instr[6] & instr[7];
 
   initial begin
-    $monitor("%t: pc = %b, a = %b, b = %b,", $time, pcf, reg_a_data, reg_b_data);
+    // $monitor("%t: pc = %b, a = %b, b = %b,", $time, pcf, reg_a_data, reg_b_data);
     // $monitor(">> ALU: in0 = %b, in1 = %b, out = %b, co = %b, select_a = %b, select_b = %b", selector_out, im, alu_out, m_alu_co, select_a, select_b);
   end
 endmodule
@@ -68,6 +78,23 @@ module td4_rom(
   always @ (adr)
     // ROMの中身
     case (adr)
+    4'b0000: dout <= 8'b10111111; // OUT 1111
+    4'b0001: dout <= 8'b01100000; // IN B
+    4'b0010: dout <= 8'b10010000; // OUT B
+    4'b0011: dout <= 8'b00000000;
+    4'b0100: dout <= 8'b00000000;
+    4'b0101: dout <= 8'b00000000;
+    4'b0110: dout <= 8'b00000000;
+    4'b0111: dout <= 8'b00000000;
+    4'b1000: dout <= 8'b00000000;
+    4'b1001: dout <= 8'b00000000;
+    4'b1010: dout <= 8'b00000000;
+    4'b1011: dout <= 8'b00000000;
+    4'b1100: dout <= 8'b00000000;
+    4'b1101: dout <= 8'b00000000;
+    4'b1110: dout <= 8'b00000000;
+    4'b1111: dout <= 8'b00000000;
+/*
       4'b0000: dout <= 8'b00000001; // ADD A, 1
       4'b0001: dout <= 8'b11100000; // JNC 0000
       4'b0010: dout <= 8'b01010001; // ADD B, 1
@@ -84,6 +111,7 @@ module td4_rom(
       4'b1101: dout <= 8'b00000000;
       4'b1110: dout <= 8'b00000000;
       4'b1111: dout <= 8'b00000000;
+*/
     endcase
 endmodule
 
