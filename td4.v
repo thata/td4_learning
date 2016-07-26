@@ -16,7 +16,8 @@ module td4_test();
     #400 $finish;
 
   initial begin
-    $monitor("out_port = %b", out_port);
+    // 出力ポートをモニタする
+    // $monitor("out_port = %b", out_port);
 
     // init clock
     clk = 0;
@@ -44,6 +45,7 @@ module td4(
   wire alu_co, m_alu_co;
   wire [3:0] reg_a_data, reg_b_data;
   wire [3:0] selector_out;
+  wire op0, op1, op2, op3;
   wire select_a, select_b;
   wire load0, load1, load2, load3;
 
@@ -58,15 +60,20 @@ module td4(
   assign adr = pcf;
 
   assign im = instr[3:0];
-  assign select_a = instr[4] | instr[7];
-  assign select_b = instr[5];
-  assign load0 = !(instr[6] | instr[7]);
-  assign load1 = !(!instr[6] | instr[7]);
-  assign load2 = instr[7] & !instr[6];
-  assign load3 = (!m_alu_co | instr[4]) & instr[6] & instr[7];
+  assign op0 = instr[4];
+  assign op1 = instr[5];
+  assign op2 = instr[6];
+  assign op3 = instr[7];
+  assign select_a = op0 | op3;
+  assign select_b = op1;
+  assign load0 = !(op2 | op3);
+  assign load1 = !(!op2 | op3);
+  assign load2 = !op2 & op3;
+  assign load3 = (!m_alu_co | op0) & op2 & op3;
 
   initial begin
-    // $monitor("%t: pc = %b, a = %b, b = %b,", $time, pcf, reg_a_data, reg_b_data);
+    $monitor("%t: pc = %b, a = %b, b = %b,", $time, pcf, reg_a_data, reg_b_data);
+    // $monitor("%t: pc = %b, a = %b, b = %b, op0 = %b, op1 = %b, op2 = %b, op3 = %b, select_a = %b, select_b = %b, load0 = %b, load1 = %b, load2 = %b, load3 = %b, instr = %b", $time, pcf, reg_a_data, reg_b_data, op0, op1, op2, op3, select_a, select_b, load0, load1, load2, load3, instr);
     // $monitor(">> ALU: in0 = %b, in1 = %b, out = %b, co = %b, select_a = %b, select_b = %b", selector_out, im, alu_out, m_alu_co, select_a, select_b);
   end
 endmodule
@@ -78,22 +85,22 @@ module td4_rom(
   always @ (adr)
     // ROMの中身
     case (adr)
-    4'b0000: dout <= 8'b10111111; // OUT 1111
-    4'b0001: dout <= 8'b01100000; // IN B
-    4'b0010: dout <= 8'b10010000; // OUT B
-    4'b0011: dout <= 8'b00000000;
-    4'b0100: dout <= 8'b00000000;
-    4'b0101: dout <= 8'b00000000;
-    4'b0110: dout <= 8'b00000000;
-    4'b0111: dout <= 8'b00000000;
-    4'b1000: dout <= 8'b00000000;
-    4'b1001: dout <= 8'b00000000;
-    4'b1010: dout <= 8'b00000000;
-    4'b1011: dout <= 8'b00000000;
-    4'b1100: dout <= 8'b00000000;
-    4'b1101: dout <= 8'b00000000;
-    4'b1110: dout <= 8'b00000000;
-    4'b1111: dout <= 8'b00000000;
+      4'b0000: dout <= 8'b00111111; // MOV A, 1111
+      4'b0001: dout <= 8'b01000000; // MOV B, A
+      4'b0010: dout <= 8'b00110000; // MOV A, 0000
+      4'b0011: dout <= 8'b01110000; // MOV B, 0000
+      4'b0100: dout <= 8'b00000000;
+      4'b0101: dout <= 8'b00000000;
+      4'b0110: dout <= 8'b00000000;
+      4'b0111: dout <= 8'b00000000;
+      4'b1000: dout <= 8'b00000000;
+      4'b1001: dout <= 8'b00000000;
+      4'b1010: dout <= 8'b00000000;
+      4'b1011: dout <= 8'b00000000;
+      4'b1100: dout <= 8'b00000000;
+      4'b1101: dout <= 8'b00000000;
+      4'b1110: dout <= 8'b00000000;
+      4'b1111: dout <= 8'b00000000;
 /*
       4'b0000: dout <= 8'b00000001; // ADD A, 1
       4'b0001: dout <= 8'b11100000; // JNC 0000
