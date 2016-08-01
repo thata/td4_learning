@@ -6,13 +6,14 @@ module td4(
   output [3:0] out_port
 );
 
-  wire [3:0] pcf; // PCの出力
+  wire [3:0] op;
   wire [3:0] im;
+  
+  wire [3:0] pcf; // PCの出力
   wire [3:0] alu_out;
   wire alu_co, m_alu_co;
   wire [3:0] reg_a_data, reg_b_data;
   wire [3:0] selector_out;
-  wire op0, op1, op2, op3;
   wire select_a, select_b;
   wire load0, load1, load2, load3;
 
@@ -24,24 +25,20 @@ module td4(
   adder4 alu (selector_out, im, alu_out, alu_co);
   dff alu_co_memo (clk, reset, alu_co, m_alu_co);
 
+  assign im = instr[3:0];
+  assign op = instr[7:4];
+
   assign adr = pcf;
 
-  assign im = instr[3:0];
-  assign op0 = instr[4];
-  assign op1 = instr[5];
-  assign op2 = instr[6];
-  assign op3 = instr[7];
-  assign select_a = op0 | op3;
-  assign select_b = op1;
-  assign load0 = !(op2 | op3);
-  assign load1 = !(!op2 | op3);
-  assign load2 = !op2 & op3;
-  assign load3 = (!m_alu_co | op0) & op2 & op3;
+  assign select_a = op[0] | op[3];
+  assign select_b = op[1];
+  assign load0 = !(op[2] | op[3]);
+  assign load1 = !(!op[2] | op[3]);
+  assign load2 = !op[2] & op[3];
+  assign load3 = (!m_alu_co | op[0]) & op[2] & op[3];
 
   initial begin
     $monitor("%t: pc = %b, a = %b, b = %b,", $time, pcf, reg_a_data, reg_b_data);
-    // $monitor("%t: pc = %b, a = %b, b = %b, op0 = %b, op1 = %b, op2 = %b, op3 = %b, select_a = %b, select_b = %b, load0 = %b, load1 = %b, load2 = %b, load3 = %b, instr = %b", $time, pcf, reg_a_data, reg_b_data, op0, op1, op2, op3, select_a, select_b, load0, load1, load2, load3, instr);
-    // $monitor(">> ALU: in0 = %b, in1 = %b, out = %b, co = %b, select_a = %b, select_b = %b", selector_out, im, alu_out, m_alu_co, select_a, select_b);
   end
 endmodule
 
