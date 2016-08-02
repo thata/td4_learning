@@ -118,6 +118,9 @@ module data_selector(
   end
 endmodule
 
+//------------------------
+// テストベンチ
+//------------------------
 module cpu_test();
   reg clk;
   reg n_reset;
@@ -156,7 +159,9 @@ module cpu_test();
   end
 endmodule
 
+//------------------------
 // ROM
+//------------------------
 module test_rom(
   input [3:0] address,
   output reg [7:0] dout
