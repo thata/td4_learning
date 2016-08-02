@@ -7,14 +7,14 @@ module cpu(
   output [3:0] out);
 
   //------------------------
-  // Monitor settings
+  // （デバッグ用）モニタの設定
   //------------------------
   initial begin
     // $monitor("%t: pc = %b, a = %b, b = %b, instr = %b, op = %b, im = %b, select_a = %b, select_b = %b, load0 = %b, load1 = %b, load2 = %b", $time, pc_reg, a_reg, b_reg, instr, op, im, select_a, select_b, load0, load1, load2);
   end
 
   //------------------------
-  // Signal Declarations
+  // ワイヤ・レジスタの宣言
   //------------------------
   wire [3:0] op;
   wire [3:0] im;
@@ -30,7 +30,7 @@ module cpu(
   reg co_reg; // Carry out register
 
   //------------------------
-  // ALU and carry out register
+  // ALU と carry レジスタ
   //------------------------
   assign {c, alu_out} = selector_out + im;
 
@@ -41,12 +41,12 @@ module cpu(
     co_reg <= c;
 
   //------------------------
-  // Data selector
+  // データセレクタ
   //------------------------
   data_selector ds (a_reg, b_reg, in, 4'b0000, select_a, select_b, selector_out);
 
   //------------------------
-  // Program Counter
+  // プログラムカウンタ
   //------------------------
   assign address = pc_reg;
 
@@ -57,7 +57,7 @@ module cpu(
     pc_reg <= load3 ? im : pc_reg + 1;
 
   //------------------------
-  // Registers
+  // レジスタ
   //------------------------
   always @(negedge n_reset) begin
     a_reg <= 0;
@@ -72,7 +72,7 @@ module cpu(
   end
 
   //------------------------
-  // Output port
+  // 出力ポート
   //------------------------
   assign out = out_reg;
 
@@ -85,18 +85,36 @@ module cpu(
   end
 
   //------------------------
-  // Control
+  // 命令を「オペレーションコード」と「イミディエイトデータ」へ分割
   //------------------------
-  assign op = instr[7:4];
-  assign im = instr[3:0];
+  assign op = instr[7:4];　// オペレーションコード
+  assign im = instr[3:0];  // イミディエイトデータ
+
+  //------------------------
+  // データセレクタ制御フラグ
+  //------------------------
   assign select_a = op[0] | op[3];
   assign select_b = op[1];
-  assign load0 = !(op[2] | op[3]);
-  assign load1 = !(!op[2] | op[3]);
-  assign load2 = !op[2] & op[3];
-  assign load3 = (!co_reg | op[0]) & op[2] & op[3];
+
+  //------------------------
+  // ロードレジスタ制御フラグ
+  //------------------------
+  assign load0 = !(op[2] | op[3]); // Aレジスタへロード
+  assign load1 = !(!op[2] | op[3]); // Bレジスタへロード
+  assign load2 = !op[2] & op[3]; // 出力ポートへロード
+  assign load3 = (!co_reg | op[0]) & op[2] & op[3]; // PCへロード
 endmodule
 
+//------------------------
+// データセレクタ
+//
+// select_a、select_bの信号に応じてc0〜c3の信号を出力する
+//
+// * (select_a = L, select_b = L) => c0を出力
+// * (select_a = H, select_b = L) => c1を出力
+// * (select_a = L, select_b = H) => c2を出力
+// * (select_a = H, select_b = H) => c3を出力
+//------------------------
 module data_selector(
   input [3:0] c0,
   input [3:0] c1,
@@ -120,6 +138,7 @@ endmodule
 
 //------------------------
 // テストベンチ
+// （ラーメンタイマーを実行して、out を $display するだけのもの）
 // iverilog -o a cpu.v && ./a
 //------------------------
 module cpu_test();
@@ -140,13 +159,18 @@ module cpu_test();
   cpu cpu(clk, n_reset, address, dout, port_in, port_out);
   test_rom rom(address, dout);
 
-  // Finish after 1000 unit times
+  // Finish after 3000 unit times
   always
     #3000 $finish;
 
   initial begin
+    // 波形データを cpu_test.vcd へ出力する
     $dumpfile("cpu_test.vcd");
+
+    // cpu モジュール内の変数を波形データとして出力
     $dumpvars(0, cpu);
+
+    // 出力ポートをモニタする
     $monitor("%t: out = %b", $time, port_out);
   end
 
