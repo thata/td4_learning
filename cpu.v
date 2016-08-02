@@ -30,31 +30,11 @@ module cpu(
   reg co_reg; // Carry out register
 
   //------------------------
-  // ALU と carry レジスタ
+  // 外部モジュールとの接続
   //------------------------
-  assign {c, alu_out} = selector_out + im;
 
-  always @(negedge n_reset)
-    co_reg <= 0;
-
-  always @(posedge clk)
-    co_reg <= c;
-
-  //------------------------
   // データセレクタ
-  //------------------------
   data_selector ds (a_reg, b_reg, in, 4'b0000, select_a, select_b, selector_out);
-
-  //------------------------
-  // プログラムカウンタ
-  //------------------------
-  assign address = pc_reg;
-
-  always @(negedge n_reset)
-    pc_reg <= 0;
-
-  always @(posedge clk)
-    pc_reg <= load3 ? im : pc_reg + 1;
 
   //------------------------
   // レジスタ
@@ -85,20 +65,40 @@ module cpu(
   end
 
   //------------------------
-  // 命令を「オペレーションコード」と「イミディエイトデータ」へ分割
+  // プログラムカウンタ
   //------------------------
+  assign address = pc_reg;
+
+  always @(negedge n_reset)
+    pc_reg <= 0;
+
+  always @(posedge clk)
+    pc_reg <= load3 ? im : pc_reg + 1;
+
+  //------------------------
+  // ALU と carry レジスタ
+  //------------------------
+  assign {c, alu_out} = selector_out + im;
+
+  always @(negedge n_reset)
+    co_reg <= 0;
+
+  always @(posedge clk)
+    co_reg <= c;
+
+  //------------------------
+  // 命令のデコード
+  //------------------------
+
+  // 命令を「オペレーションコード」と「イミディエイトデータ」へ分割
   assign op = instr[7:4];　// オペレーションコード
   assign im = instr[3:0];  // イミディエイトデータ
 
-  //------------------------
   // データセレクタ制御フラグ
-  //------------------------
   assign select_a = op[0] | op[3];
   assign select_b = op[1];
 
-  //------------------------
   // ロードレジスタ制御フラグ
-  //------------------------
   assign load0 = !(op[2] | op[3]); // Aレジスタへロード
   assign load1 = !(!op[2] | op[3]); // Bレジスタへロード
   assign load2 = !op[2] & op[3]; // 出力ポートへロード
