@@ -120,6 +120,7 @@ endmodule
 
 //------------------------
 // テストベンチ
+// iverilog -o a cpu.v && ./a
 //------------------------
 module cpu_test();
   reg clk;
@@ -141,7 +142,7 @@ module cpu_test();
 
   // Finish after 1000 unit times
   always
-    #1000 $finish;
+    #3000 $finish;
 
   initial begin
     $dumpfile("cpu_test.vcd");
@@ -170,25 +171,24 @@ module test_rom(
   always @(address)
     case (address)
       /*
-        carry outするまでAレジスタへ加算を行い、
-        carry outしたらAの値を出力後に無限ループを行う
+        ラーメンタイマー
       */
-      4'b0000: dout <= 8'b00110000; // MOV A, 0
-      4'b0001: dout <= 8'b01000000; // MOV B, A
-      4'b0010: dout <= 8'b10010000; // OUT B
-      4'b0011: dout <= 8'b00000001; // ADD A, 1
-      4'b0100: dout <= 8'b11100001; // JNC 0001
-      4'b0101: dout <= 8'b01000000; // MOV B, A
-      4'b0110: dout <= 8'b10010000; // OUT B
-      4'b0111: dout <= 8'b00000000; // NOP
-      4'b1000: dout <= 8'b11110111; // JMP 0111
-      4'b1001: dout <= 8'b00000000;
-      4'b1010: dout <= 8'b00000000;
-      4'b1011: dout <= 8'b00000000;
-      4'b1100: dout <= 8'b00000000;
-      4'b1101: dout <= 8'b00000000;
-      4'b1110: dout <= 8'b00000000;
-      4'b1111: dout <= 8'b00000000;
+      4'b0000: dout <= 8'b10110111;
+      4'b0001: dout <= 8'b00000001;
+      4'b0010: dout <= 8'b11100001;
+      4'b0011: dout <= 8'b00000001;
+      4'b0100: dout <= 8'b11100011;
+      4'b0101: dout <= 8'b10110110;
+      4'b0110: dout <= 8'b00000001;
+      4'b0111: dout <= 8'b11100110;
+      4'b1000: dout <= 8'b00000001;
+      4'b1001: dout <= 8'b11101000;
+      4'b1010: dout <= 8'b10110000;
+      4'b1011: dout <= 8'b10110100;
+      4'b1100: dout <= 8'b00000001;
+      4'b1101: dout <= 8'b11101010;
+      4'b1110: dout <= 8'b10111000;
+      4'b1111: dout <= 8'b11111111;
       default: dout <= 8'bxxxxxxxx;
     endcase
 endmodule
