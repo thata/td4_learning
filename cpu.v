@@ -56,13 +56,11 @@ module cpu(
   //------------------------
   assign out = out_reg;
 
-  always @(negedge n_reset) begin
+  always @(negedge n_reset)
     out_reg <= 0;
-  end
 
-  always @(posedge clk) begin
+  always @(posedge clk)
     out_reg <= load2 ? alu_out : out_reg;
-  end
 
   //------------------------
   // プログラムカウンタ
@@ -89,10 +87,8 @@ module cpu(
   //------------------------
   // 命令のデコード
   //------------------------
-
-  // 命令を「オペレーションコード」と「イミディエイトデータ」へ分割
-  assign op = instr[7:4];　// オペレーションコード
-  assign im = instr[3:0];  // イミディエイトデータ
+  assign op = instr[7:4]; // オペレーションコード
+  assign im = instr[3:0]; // イミディエイトデータ
 
   // データセレクタ制御フラグ
   assign select_a = op[0] | op[3];
